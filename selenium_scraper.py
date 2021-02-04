@@ -47,12 +47,12 @@ class Scraper:
 
     def set_browser(self):
         if self._name.lower() == "chrome":
-            self.setChrome()
+            self.use_chrome()
         elif self._name.lower() == "firefox":
-            self.setFirefox()
+            self.use_firefox()
         else:
             print(f"'{self._name}' not recognized defaulted to Firefox")
-            self.setFirefox()
+            self.use_firefox()
     
     def open_browser(self):
         print("Opening Browser")
