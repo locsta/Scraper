@@ -41,6 +41,8 @@ class Scraper:
         self.set_browser()
         self.logging_path = os.getcwd()
         self.set_logging_params()
+        self.logging = logging
+
 
     def use_chrome(self):
         self._browser = Chrome
