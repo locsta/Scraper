@@ -34,13 +34,13 @@ import json
 #TODO: Documentation, verbose
 
 class Scraper:
-    def __init__(self, browser="Firefox", headless=True):
+    def __init__(self, browser="Firefox", headless=True, log_filename="scraper.log"):
         # profile = webdriver.FirefoxProfile()
         self._name = browser
         self._headless = headless
         self.set_browser()
         self.logging_path = os.getcwd()
-        self.set_logging_params()
+        self.set_logging_params(filename=log_filename)
         self.logging = logging
 
 
