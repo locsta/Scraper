@@ -27,8 +27,9 @@ from os.path import isfile, join
 import sys
 import subprocess
 
-# Data
+# Data processing
 import pandas as pd
+import json
 
 #TODO: Documentation, verbose
 
@@ -38,6 +39,8 @@ class Scraper:
         self._name = browser
         self._headless = headless
         self.set_browser()
+        self.logging_path = os.getcwd()
+        self.set_logging_params()
 
     def use_chrome(self):
         self._browser = Chrome
@@ -74,7 +77,7 @@ class Scraper:
         self._options.headless = headless
         self._options.add_argument('--remote-debugging-port=9222') # Enable debugging on local host while running selenium headless --> http://localhost:9222
 
-    def set_logging_params(self, path=None, filename="selenium_scraper.log", root_level="DEBUG",console_level="INFO", file_level="WARNING"):
+    def set_logging_params(self, path=None, filename="selenium_scraper.log", root_level="DEBUG", console_level="INFO", file_level="WARNING"):
         """This method set logging parameters
         
         Args:
@@ -90,7 +93,7 @@ class Scraper:
         console_level = console_level.upper()
         file_level = file_level.upper()
         if not path:
-            path = self.root_path
+            path = self.logging_path
         for level_name, level in {"root level":root_level, "console level":console_level, "file level":file_level}.items():
             if level not in levels:
                 logging.error(f"logging setting {level} unavailable for {level_name}")
@@ -100,6 +103,10 @@ class Scraper:
             pass
         if filename:
             pass
+
+        # Silence numexpr
+        logging.getLogger('numexpr').setLevel(logging.CRITICAL)
+
         rootLogger = logging.getLogger()
         rootLogger.setLevel(getattr(logging, root_level))
         logFormatter = logging.Formatter("%(asctime)s [%(levelname)-4.4s]  %(message)s")
@@ -150,5 +157,15 @@ class Scraper:
             dfs.append(pd.read_html(str(table))[0])
         return dfs
 
-    def javascript_variable_to_json(self):
-        pass
+    def javascript_variable_to_json(self, js_var, path):
+        json_file = self.browser.execute_script(f'return JSON.stringify({js_var});')
+        json_file = eval(json_file.replace("false", "False").replace("true", "True").replace("null", "None"))
+        with open(path, 'w') as outfile:
+            json.dump(json_file, outfile, sort_keys=True, indent=4)
+
+    def script_data_from_id_to_json(self, script_id, path):
+        script_data = self.browser.find_element_by_id(f"{script_id}").get_attribute("innerHTML")
+        script_data = self.browser.execute_script(f'return JSON.stringify({script_data});')
+        script_data = eval(script_data.replace("false", "False").replace("true", "True").replace("null", "None"))
+        with open(path, 'w') as outfile:
+            json.dump(script_data, outfile, sort_keys=True, indent=4)
