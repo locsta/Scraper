@@ -11,6 +11,7 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
 from selenium.common.exceptions import TimeoutException
 from selenium.common import exceptions
+from bs4 import BeautifulSoup
 from lxml import html
 import re
 
@@ -25,6 +26,9 @@ from os import listdir
 from os.path import isfile, join
 import sys
 import subprocess
+
+# Data
+import pandas as pd
 
 #TODO: Documentation, verbose
 
@@ -57,10 +61,6 @@ class Scraper:
     def open_browser(self):
         print("Opening Browser")
         return self._browser()
-
-    @property
-    def browser(self, browser):
-        return self._browser
 
     @property
     def headless(self, headless):
@@ -139,3 +139,16 @@ class Scraper:
                 output = process.communicate()[0]
             except:
                 logging.error(f"Unable to run bash command {command}")
+
+    def html_tables_to_df(self):
+        # This method format html tables in pandas DataFrame format
+        html = self.browser.page_source
+        soup = BeautifulSoup(html,'html.parser')
+        tables = soup.select("table")
+        dfs = []
+        for table in tables:
+            dfs.append(pd.read_html(str(table))[0])
+        return dfs
+
+    def javascript_variable_to_json(self):
+        pass
