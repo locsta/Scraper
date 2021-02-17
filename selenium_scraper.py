@@ -41,8 +41,6 @@ class Scraper:
         self.set_browser()
         self.logging_path = os.getcwd()
         self.set_logging_params(filename=log_filename)
-        self.logging = logging
-
 
     def use_chrome(self):
         self._browser = Chrome
@@ -60,7 +58,7 @@ class Scraper:
         elif self._name.lower() == "firefox":
             self.use_firefox()
         else:
-            print(f"'{self._name}' not recognized defaulted to Firefox")
+            self.logging.warning(f"'{self._name}' not recognized defaulted to Firefox")
             self.use_firefox()
     
     def open_browser(self):
@@ -74,7 +72,7 @@ class Scraper:
     #TODO: work on headless setter
     @headless.setter
     def headless(self, headless):
-        print("Setting headless mode")
+        self.logging.info("Setting headless mode")
         assert type(headless) == bool
         self._options.headless = headless
         self._options.add_argument('--remote-debugging-port=9222') # Enable debugging on local host while running selenium headless --> http://localhost:9222
@@ -122,6 +120,7 @@ class Scraper:
         consoleHandler.setLevel(getattr(logging, console_level))
         consoleHandler.setFormatter(logFormatter)
         rootLogger.addHandler(consoleHandler)
+        self.logging = logging
 
     def make_sure_path_exists(self, path):
         """This method create a path and the corresponding folders if the path doesn't exists yet
