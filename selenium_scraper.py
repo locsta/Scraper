@@ -14,6 +14,7 @@ from selenium.common import exceptions
 from bs4 import BeautifulSoup
 from lxml import html
 import re
+import urllib.request
 
 # Logging and Error
 import logging
@@ -171,14 +172,23 @@ class Scraper:
         with open(path, 'w') as outfile:
             json.dump(script_data, outfile, sort_keys=True, indent=4)
 
-    def get_proxies(self):
-        url = 'https://free-proxy-list.net/'
-        response = requests.get(url)
-        parser = fromstring(response.text)
-        proxies = set()
-        for i in parser.xpath('//tbody/tr')[:20]:
-            if i.xpath('.//td[7][contains(text(),"yes")]'):
-                #Grabbing IP and corresponding PORT
-                proxy = ":".join([i.xpath('.//td[1]/text()')[0], i.xpath('.//td[2]/text()')[0]])
-                proxies.add(proxy)
-        return proxies
+    # def get_proxies(self):
+    #     url = 'https://free-proxy-list.net/'
+    #     response = requests.get(url)
+    #     parser = fromstring(response.text)
+    #     proxies = set()
+    #     for i in parser.xpath('//tbody/tr')[:20]:
+    #         if i.xpath('.//td[7][contains(text(),"yes")]'):
+    #             #Grabbing IP and corresponding PORT
+    #             proxy = ":".join([i.xpath('.//td[1]/text()')[0], i.xpath('.//td[2]/text()')[0]])
+    #             proxies.add(proxy)
+    #     return proxies
+
+    def download(self, url, save_to_path="download_folder"):
+        if save_to_path == "download_folder":
+            save_to_path = os.path.normpath(os.path.expanduser("~/Downloads"))
+        try:
+            urllib.request.urlretrieve(url) #, save_to_path
+            self.logging.info(f"Downloaded file from url:{url} to {save_to_path}")
+        except:
+            self.logging.error(f"The file from url:{url} was not available")
