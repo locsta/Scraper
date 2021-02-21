@@ -192,3 +192,87 @@ class Scraper:
             self.logging.info(f"Downloaded file from url:{url} to {save_to_path}")
         except:
             self.logging.error(f"The file from url:{url} was not available")
+
+    def save_json(self, data, json_file_name):
+        """This method save data given in paramater as a json file
+        
+        Args:
+            data ([str, lst, dict and other types of data]): The data you want to save as json file
+            json_file_name (str): The json filename (including path)
+        """
+        self.make_sure_path_exists(self.path_today)
+        json_file_name = os.path.join(self.path_today, f"{json_file_name}.json")
+        with open(json_file_name, 'w') as outfile:
+            json.dump(data, outfile)
+
+    def load_json(self, file_path):
+        """This method load a json file and returns it
+        
+        Args:
+            file_path (str): The path to the json file you want to load
+        
+        Returns:
+            [any type]: The loaded json file
+        """
+        if not os.path.isfile(file_path) and not file_path.endswith(".json"):
+            file_path += ".json"
+        if not os.path.isfile(file_path):
+            logging.error(f"The path provided doesn't lead to a json file\nPath provided:{file_path}")
+            return False
+        try:
+            with open(file_path) as json_file:
+                return json.load(json_file)
+        except:
+            logging.error(f"Unable to load json file, make sure {file_path} is the right path")
+
+    def load_csv(self, file_path):
+        """This method load a csv file and returns it as a pandas DataFrame
+        
+        Args:
+            file_path (str): The path to the csv file you want to load as a pandas DataFrame
+        
+        Returns:
+            pandas DataFrame: The csv file as a pandas DataFrame
+        """
+        if not os.path.isfile(file_path) and not file_path.endswith(".csv"):
+            file_path += ".csv"
+        if not os.path.isfile(file_path):
+            logging.error(f"The path provided doesn't lead to a csv file\nPath provided:{file_path}")
+            return
+        try:
+            df = pd.read_csv(file_path)
+            return df
+        except:
+            logging.error(f"There was a problem loading csv file: {file_path}")
+
+    def save_csv(self, df, file_path, params={"index" : None}):
+        """This method saves a pandas DataFrame in a csv file
+        
+        Args:
+            df (pandas DataFrame): The pandas DataFrame you want to save
+            file_path (str): The path of the csv file you want to create (including filename and extension)
+            params (dict, optional): The pandas "df.to_csv" paramaters. Defaults to {"index" : None}.
+        """
+        if not isinstance(df, pd.DataFrame):
+            logging.error(df, "\nThe file printed above need to be a DataFrame in order to be used by the method save_csv()")
+            return
+        if not file_path.endswith(".csv"):
+            file_path += ".csv"
+        parent = os.path.abspath(os.path.join(file_path, os.pardir))
+        self.make_sure_path_exists(parent)
+        if params:
+            df.to_csv(file_path, **params)
+        else:
+            df.to_csv(file_path)
+
+    def set_driver_options(self, options): #TODO: fix
+        """This method allow you to set options to the selenium browser
+        
+        Args:
+            options (lst): The options you want to set for the web driver
+        """
+        if type(options) == list:
+            for option in options:
+                self._browser.options.add_argument(option)
+        else:
+            self._browser.options.add_argument(option)
