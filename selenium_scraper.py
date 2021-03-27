@@ -31,6 +31,7 @@ import subprocess
 # Data processing
 import pandas as pd
 import json
+import hashlib
 
 #TODO: Documentation, verbose
 
@@ -108,7 +109,10 @@ class Scraper:
         # Silence numexpr
         logging.getLogger('numexpr').setLevel(logging.CRITICAL)
 
+        # Create logger and use it only once each times
         rootLogger = logging.getLogger()
+        rootLogger.propagate = False
+
         rootLogger.setLevel(getattr(logging, root_level))
         logFormatter = logging.Formatter("%(asctime)s [%(levelname)-4.4s]  %(message)s")
 
@@ -159,11 +163,13 @@ class Scraper:
             dfs.append(pd.read_html(str(table))[0])
         return dfs
 
-    def javascript_variable_to_json(self, js_var, path):
+    def javascript_variable_to_json(self, js_var, path, indent=4, python_readable=False):
+        self.make_sure_path_exists("".join(path.split("/")[:-1]))
         json_file = self.browser.execute_script(f'return JSON.stringify({js_var});')
-        json_file = eval(json_file.replace("false", "False").replace("true", "True").replace("null", "None"))
+        if python_readable:
+            json_file = eval(json_file.replace("false", "False").replace("true", "True").replace("null", "None"))
         with open(path, 'w') as outfile:
-            json.dump(json_file, outfile, sort_keys=True, indent=4)
+            json.dump(json_file, outfile, sort_keys=True, indent=indent)
 
     def script_data_from_id_to_json(self, script_id, path):
         script_data = self.browser.find_element_by_id(f"{script_id}").get_attribute("innerHTML")
@@ -186,9 +192,9 @@ class Scraper:
 
     def download(self, url, save_to_path="download_folder"):
         if save_to_path == "download_folder":
-            save_to_path = os.path.normpath(os.path.expanduser("~/Downloads"))
+            save_to_path = os.path.normpath(os.path.expanduser("~/Downloads")) + "download.tmp"
         try:
-            urllib.request.urlretrieve(url) #, save_to_path
+            urllib.request.urlretrieve(url, save_to_path)
             self.logging.info(f"Downloaded file from url:{url} to {save_to_path}")
         except:
             self.logging.error(f"The file from url:{url} was not available")
@@ -276,3 +282,10 @@ class Scraper:
                 self._browser.options.add_argument(option)
         else:
             self._browser.options.add_argument(option)
+
+    def md5(self, filename):
+        hash_md5 = hashlib.md5()
+        with open(filename, "rb") as f:
+            for chunk in iter(lambda: f.read(4096), b""):
+                hash_md5.update(chunk)
+        return hash_md5.hexdigest()
