@@ -43,6 +43,7 @@ class Scraper:
         self.set_browser()
         self.logging_path = os.getcwd()
         self.set_logging_params(filename=log_filename)
+        # self.download_path = os.path.normpath(os.path.expanduser("~/Downloads"))
 
     def use_chrome(self):
         self._browser = Chrome
@@ -52,6 +53,7 @@ class Scraper:
     def use_firefox(self):
         self._browser = Firefox
         self._options = FirefoxOptions()
+        # self._options = self.set_firefox_options()
         self._name = "Firefox"
 
     def set_browser(self):
@@ -62,6 +64,16 @@ class Scraper:
         else:
             self.logging.warning(f"'{self._name}' not recognized defaulted to Firefox")
             self.use_firefox()
+    
+    # def set_firefox_options(self):
+    #     options = FirefoxOptions()
+    #     options.set_preference("browser.download.folderList", 2)
+    #     options.set_preference("browser.download.dir", os.path.normpath(os.path.expanduser("~/Downloads")))
+    #     options.set_preference("browser.download.useDownloadDir", True)
+    #     options.set_preference("browser.download.viewableInternally.enabledTypes", "")
+    #     options.set_preference("browser.helperApps.neverAsk.saveToDisk", "application/zip;text/plain;application/text;text/xml;application/xml")
+    #     options.set_preference("pdfjs.disabled", True)
+    #     return options
     
     def open_browser(self):
         print("Opening Browser")
@@ -196,8 +208,10 @@ class Scraper:
         try:
             urllib.request.urlretrieve(url, save_to_path)
             self.logging.info(f"Downloaded file from url:{url} to {save_to_path}")
+            return True
         except:
             self.logging.error(f"The file from url:{url} was not available")
+            return False
 
     def save_json(self, data, json_file_name):
         """This method save data given in paramater as a json file
